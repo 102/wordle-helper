@@ -3,16 +3,11 @@
   "version": "1.0.0",
   "description": "wordle game helper",
   "scripts": {
-    "clean": "rimraf ./docs/*",
+    "clean": "rimraf ./dist/*",
     "build": "npm run clean && parcel build index.html"
   },
   "author": "Roman Gusev <rgusev2@gmail.com>",
   "license": "MIT",
-  "targets": {
-    "default": {
-      "distDir": "./docs"
-    }
-  },
   "devDependencies": {
     "parcel": "^2.2.0",
     "rimraf": "^3.0.2"

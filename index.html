@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="wordle game helper" />
+    <meta name="keywords" content="wordle helper words help" />
+    <title>Wordle helper</title>
+  </head>
+  <body>
+    <h1>Wordle helper</h1>
+    <fieldset>
+      <legend>Current data</legend>
+      <label>
+        letters in word
+        <input name="in-word" type="text" />
+      </label>
+      <br />
+      <label>
+        letters not in word
+        <input name="not-in-word" type="text" />
+      </label>
+      <br />
+      <label>
+        wildcard
+        <input name="wildcard" type="text" value="....." />
+        . for unknown symbol, char for known symbol
+      </label>
+      <br />
+      <button id="random-word">get random word</button>
+      <label
+        >random word<input readonly="readonly" name="random"
+      /></label>
+      <br />
+      <label>
+        letters not in the position 1
+        <input name="no-letter-1" type="text" />
+      </label>
+      <br />
+      <label>
+        letters not in the position 2
+        <input name="no-letter-2" type="text" />
+      </label>
+      <br />
+      <label>
+        letters not in the position 3
+        <input name="no-letter-3" type="text" />
+      </label>
+      <br />
+      <label>
+        letters not in the position 4
+        <input name="no-letter-4" type="text" />
+      </label>
+      <br />
+      <label>
+        letters not in the position 5
+        <input name="no-letter-5" type="text" />
+      </label>
+      <br />
+      <button id="reset">reset</button>
+    </fieldset>
+    <h2>Remaining options:</h2>
+    <pre id="options"></pre>
+    <script type="module">
+      import("./words.js").then(({ words }) => {
+        let newWords = [];
+        const options = document.getElementById("options");
+        const updateOptions = (_words) =>
+          (options.innerText = _words.join("\n"));
+        options.innerText = updateOptions(words);
+        const inWordInput = document.getElementsByName("in-word")[0];
+        const notInWordInput = document.getElementsByName("not-in-word")[0];
+        const wildcardInput = document.getElementsByName("wildcard")[0];
+        const randomWordButton = document.getElementById("random-word");
+        const randomWordInput = document.getElementsByName("random")[0];
+        const noLetterInputs = document.querySelectorAll('[name|="no-letter"]');
+        const resetButton = document.getElementById("reset");
+        const vowels = ["a", "e", "i", "o", "u"];
+        const uniqueVowelsSize = (word) =>
+          new Set(Array.from(word).filter((letter) => vowels.includes(letter)))
+            .size;
+
+        const recalculate = () => {
+          const inWord = Array.from(inWordInput.value);
+          const notInWord = Array.from(notInWordInput.value);
+          const wildcard = new RegExp(wildcardInput.value, "i");
+          newWords = words
+            .filter((word) => inWord.every((letter) => word.includes(letter)))
+            .filter((word) =>
+              notInWord.every((letter) => !word.includes(letter))
+            )
+            .filter((word) => wildcard.test(word))
+            .filter((word) =>
+              Array.from(noLetterInputs)
+                .map((input, index) => [Array.from(input.value), index])
+                .filter(([noLetters]) => noLetters.length)
+                .every(([noLetters, index]) =>
+                  noLetters.every((letter) => word[index] !== letter)
+                )
+            )
+            .sort(
+              (wordA, wordB) =>
+                uniqueVowelsSize(wordB) - uniqueVowelsSize(wordA)
+            );
+          updateOptions(newWords);
+        };
+
+        recalculate();
+
+        const handleRandomButton = () => {
+          const randomWord =
+            newWords[Math.floor(Math.random() * newWords.length)];
+          randomWordInput.value = randomWord;
+        };
+
+        randomWordButton.addEventListener("click", handleRandomButton);
+
+        inWordInput.addEventListener("input", recalculate);
+        notInWordInput.addEventListener("input", recalculate);
+        wildcardInput.addEventListener("input", recalculate);
+        Array.from(noLetterInputs).forEach((input) =>
+          input.addEventListener("input", recalculate)
+        );
+
+        const handleReset = () => {
+          wildcardInput.value = ".....";
+          [
+            inWordInput,
+            notInWordInput,
+            randomWordButton,
+            randomWordInput,
+            ...noLetterInputs,
+          ].forEach((input) => {
+            input.value = "";
+          });
+          recalculate();
+        };
+
+        resetButton.addEventListener("click", handleReset);
+      });
+    </script>
+  </body>
+</html>
